@@ -1,11 +1,13 @@
 """
 Backend principale per il Psicologo Virtuale.
 Include RAG con Chroma, gestione conversazioni e API per il frontend.
+Integrazione con ElevenLabs per analisi conversazioni vocali.
 """
 
 import os
 import json
-from typing import Dict, List, Optional
+import requests
+from typing import Dict, List, Optional, Union, Any
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -30,6 +32,7 @@ logger = logging.getLogger(__name__)
 # Carica variabili d'ambiente
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")  # Aggiungi questa variabile a .env
 
 # Configurazione percorsi
 BASE_DIR = Path(__file__).resolve().parent
@@ -43,6 +46,9 @@ TEMPERATURE = 0.5  # Leggermente più alto per risposte più empatiche
 MAX_TOKENS = 15000
 SIMILARITY_TOP_K = 5
 MAX_HISTORY_LENGTH = 6  # Storia più lunga per mantenere contesto terapeutico
+
+# Configurazione ElevenLabs API
+ELEVENLABS_API_BASE = "https://api.elevenlabs.io/v1/convai"
 
 # Modelli Pydantic per le richieste e risposte API
 class Source(BaseModel):
@@ -73,6 +79,34 @@ class SessionSummaryResponse(BaseModel):
 class MoodAnalysisResponse(BaseModel):
     mood_analysis: str
 
+# Nuovi modelli per ElevenLabs
+class ElevenLabsConversation(BaseModel):
+    agent_id: str
+    conversation_id: str
+    start_time_unix_secs: Optional[int] = None
+    call_duration_secs: Optional[int] = None
+    message_count: Optional[int] = None
+    status: str
+    call_successful: Optional[str] = None
+    agent_name: Optional[str] = None
+
+class ElevenLabsConversationsResponse(BaseModel):
+    conversations: List[ElevenLabsConversation]
+    has_more: bool
+    next_cursor: Optional[str] = None
+
+class ElevenLabsTranscriptMessage(BaseModel):
+    role: str
+    time_in_call_secs: int
+    message: Optional[str] = None
+
+class ElevenLabsConversationDetail(BaseModel):
+    agent_id: str
+    conversation_id: str
+    status: str
+    transcript: List[ElevenLabsTranscriptMessage]
+    metadata: Dict[str, Any]
+
 # Modello per la richiesta e risposta dei resource
 class ResourceRequest(BaseModel):
     query: str
@@ -80,6 +114,13 @@ class ResourceRequest(BaseModel):
 
 class ResourceResponse(BaseModel):
     resources: List[Dict[str, str]]
+
+# Nuovi modelli per l'analisi combinata
+class AnalysisSourceRequest(BaseModel):
+    session_id: str
+    analyze_chatbot: bool = True
+    analyze_elevenlabs: bool = False
+    elevenlabs_conversation_id: Optional[str] = None
 
 # Memoria delle conversazioni per ogni sessione
 conversation_history: Dict[str, List[Dict[str, str]]] = {}
@@ -232,6 +273,57 @@ def format_sources(source_docs) -> List[Source]:
         )
         sources.append(source)
     return sources
+
+# Funzioni per l'integrazione con ElevenLabs
+def get_elevenlabs_headers():
+    """Restituisce gli headers per le chiamate all'API di ElevenLabs."""
+    if not ELEVENLABS_API_KEY:
+        raise ValueError("ELEVENLABS_API_KEY non trovata. Imposta la variabile d'ambiente.")
+    
+    return {
+        "xi-api-key": ELEVENLABS_API_KEY,
+        "Content-Type": "application/json"
+    }
+
+def get_elevenlabs_conversations(agent_id: Optional[str] = None, page_size: int = 30):
+    """Ottiene l'elenco delle conversazioni di ElevenLabs."""
+    url = f"{ELEVENLABS_API_BASE}/conversations"
+    params = {"page_size": page_size}
+    
+    if agent_id:
+        params["agent_id"] = agent_id
+    
+    try:
+        response = requests.get(url, headers=get_elevenlabs_headers(), params=params)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error(f"Errore nel recupero delle conversazioni ElevenLabs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Errore nel recupero delle conversazioni ElevenLabs: {str(e)}")
+
+def get_elevenlabs_conversation(conversation_id: str):
+    """Ottiene i dettagli di una specifica conversazione di ElevenLabs."""
+    url = f"{ELEVENLABS_API_BASE}/conversations/{conversation_id}"
+    
+    try:
+        response = requests.get(url, headers=get_elevenlabs_headers())
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logger.error(f"Errore nel recupero della conversazione ElevenLabs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Errore nel recupero della conversazione ElevenLabs: {str(e)}")
+
+def format_elevenlabs_transcript(conversation_detail):
+    """Formatta il transcript di ElevenLabs in un formato leggibile per l'analisi."""
+    formatted_messages = []
+    
+    for msg in conversation_detail.get("transcript", []):
+        role = "Paziente" if msg.get("role") == "user" else "Psicologo"
+        message = msg.get("message", "")
+        if message:
+            formatted_messages.append(f"{role}: {message}")
+    
+    return "\n".join(formatted_messages)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -423,37 +515,88 @@ async def recommend_resources(request: ResourceRequest):
             {"title": "Errore di generazione", "description": "Non è stato possibile generare risorse personalizzate", "type": "Errore"}
         ])
 
-@app.get("/api/mood-analysis/{session_id}", response_model=MoodAnalysisResponse)
-async def analyze_mood(session_id: str):
-    """Analizza l'umore e il progresso del paziente."""
-    if session_id not in conversation_history or not conversation_history[session_id]:
-        return MoodAnalysisResponse(mood_analysis="<p>Dati insufficienti per l'analisi</p>")
-    
-    messages = conversation_history[session_id]
-    messages_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
-    
-    llm = ChatOpenAI(model_name=MODEL_NAME, temperature=0.2)
-    analysis_prompt = f"""
-    Analizza questa conversazione terapeutica e fornisci:
-    1. Una valutazione dell'umore generale del paziente
-    2. Eventuali schemi di pensiero o comportamento ricorrenti
-    3. Suggerimenti per il terapeuta su come procedere nella prossima sessione
-    
-    Formatta la risposta in HTML con sottotitoli e paragrafi.
-    
-    Conversazione:
-    {messages_text}
-    """
-    
+# Nuovi endpoint per ElevenLabs
+@app.get("/api/elevenlabs/conversations", response_model=ElevenLabsConversationsResponse)
+async def list_elevenlabs_conversations(agent_id: Optional[str] = None):
+    """Restituisce l'elenco delle conversazioni di ElevenLabs."""
     try:
+        conversations_data = get_elevenlabs_conversations(agent_id)
+        return conversations_data
+    except Exception as e:
+        logger.error(f"Errore nel recuperare le conversazioni ElevenLabs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/elevenlabs/conversations/{conversation_id}", response_model=ElevenLabsConversationDetail)
+async def get_elevenlabs_conversation_detail(conversation_id: str):
+    """Restituisce i dettagli di una specifica conversazione di ElevenLabs."""
+    try:
+        conversation_data = get_elevenlabs_conversation(conversation_id)
+        return conversation_data
+    except Exception as e:
+        logger.error(f"Errore nel recuperare la conversazione ElevenLabs: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/mood-analysis", response_model=MoodAnalysisResponse)
+async def analyze_mood(request: AnalysisSourceRequest):
+    """Analizza l'umore e il progresso del paziente basato su diverse fonti."""
+    try:
+        combined_text = ""
+        
+        # Raccogli conversazione dal chatbot se richiesto
+        if request.analyze_chatbot:
+            if request.session_id in conversation_history and conversation_history[request.session_id]:
+                chatbot_messages = conversation_history[request.session_id]
+                chatbot_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chatbot_messages])
+                combined_text += "## Conversazione Chatbot:\n" + chatbot_text + "\n\n"
+            else:
+                combined_text += "## Conversazione Chatbot:\nNessuna conversazione disponibile\n\n"
+        
+        # Raccogli conversazione da ElevenLabs se richiesto
+        if request.analyze_elevenlabs and request.elevenlabs_conversation_id:
+            try:
+                elevenlabs_data = get_elevenlabs_conversation(request.elevenlabs_conversation_id)
+                elevenlabs_text = format_elevenlabs_transcript(elevenlabs_data)
+                combined_text += "## Conversazione Vocale ElevenLabs:\n" + elevenlabs_text + "\n\n"
+            except Exception as e:
+                combined_text += f"## Conversazione Vocale ElevenLabs:\nErrore nel recupero della conversazione: {str(e)}\n\n"
+        
+        # Se non ci sono dati, ritorna un messaggio di errore
+        if not combined_text.strip():
+            return MoodAnalysisResponse(mood_analysis="<p>Dati insufficienti per l'analisi</p>")
+        
+        # Analizza il testo combinato
+        llm = ChatOpenAI(model_name=MODEL_NAME, temperature=0.2)
+        analysis_prompt = f"""
+        Analizza questa conversazione terapeutica e fornisci:
+        1. Una valutazione dell'umore generale del paziente
+        2. Eventuali schemi di pensiero o comportamento ricorrenti
+        3. Suggerimenti per il terapeuta su come procedere nella prossima sessione
+        
+        Formatta la risposta in HTML con sottotitoli e paragrafi.
+        
+        Conversazione:
+        {combined_text}
+        """
+        
         response = llm.invoke(analysis_prompt)
         return MoodAnalysisResponse(mood_analysis=response.content)
     
     except Exception as e:
         logger.error(f"Errore nell'analisi dell'umore: {str(e)}", exc_info=True)
         return MoodAnalysisResponse(
-            mood_analysis="<p>Si è verificato un errore durante l'analisi dell'umore.</p>"
+            mood_analysis=f"<p>Si è verificato un errore durante l'analisi dell'umore: {str(e)}</p>"
         )
+
+# Endpoint legacy per retrocompatibilità
+@app.get("/api/mood-analysis/{session_id}", response_model=MoodAnalysisResponse)
+async def analyze_mood_legacy(session_id: str):
+    """Endpoint legacy per retrocompatibilità."""
+    request = AnalysisSourceRequest(
+        session_id=session_id,
+        analyze_chatbot=True,
+        analyze_elevenlabs=False
+    )
+    return await analyze_mood(request)
 
 # Avvio dell'applicazione
 if __name__ == "__main__":
