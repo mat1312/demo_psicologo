@@ -10,3 +10,4 @@ llama-index-core
 openai
 numpy
 pandas
+chromadb
