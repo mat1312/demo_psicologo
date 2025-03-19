@@ -46,8 +46,14 @@
     .parallax-header {
       position: relative;
       overflow: hidden;
-      height: 220px;
+      height: 250px; /* Aumentata altezza per mobile */
       background: linear-gradient(135deg, #4682B4 0%, #2c5282 100%);
+    }
+    
+    @media (min-width: 768px) {
+      .parallax-header {
+        height: 220px; /* Altezza originale per desktop */
+      }
     }
     
     .parallax-header::before {
@@ -75,6 +81,7 @@
       overflow: hidden;
       line-height: 0;
       transform: rotate(180deg);
+      height: 46px; /* Altezza fissa per l'onda */
     }
 
     .header-wave svg {
@@ -280,40 +287,43 @@
       border-left: 3px solid #4682B4;
     }
 
-    /* Stili per il contenuto Markdown nei messaggi del bot */
-    .bot-message a {
+    /* Stili per il contenuto Markdown nei messaggi del bot e nell'analisi */
+    .bot-message a, .markdown-content a {
       color: #4682B4;
       text-decoration: underline;
     }
 
     .bot-message h1, .bot-message h2, .bot-message h3, 
-    .bot-message h4, .bot-message h5, .bot-message h6 {
+    .bot-message h4, .bot-message h5, .bot-message h6,
+    .markdown-content h1, .markdown-content h2, .markdown-content h3,
+    .markdown-content h4, .markdown-content h5, .markdown-content h6 {
       margin-top: 0.5rem;
       margin-bottom: 0.5rem;
       font-weight: 600;
       color: #333;
     }
 
-    .bot-message h1 { font-size: 1.5rem; }
-    .bot-message h2 { font-size: 1.3rem; }
-    .bot-message h3 { font-size: 1.2rem; }
-    .bot-message h4 { font-size: 1.1rem; }
-    .bot-message h5, .bot-message h6 { font-size: 1rem; }
+    .bot-message h1, .markdown-content h1 { font-size: 1.5rem; margin-top: 1rem; color: #2c5282; }
+    .bot-message h2, .markdown-content h2 { font-size: 1.3rem; margin-top: 0.8rem; color: #4682B4; }
+    .bot-message h3, .markdown-content h3 { font-size: 1.2rem; }
+    .bot-message h4, .markdown-content h4 { font-size: 1.1rem; }
+    .bot-message h5, .bot-message h6, .markdown-content h5, .markdown-content h6 { font-size: 1rem; }
 
-    .bot-message ul, .bot-message ol {
+    .bot-message ul, .bot-message ol,
+    .markdown-content ul, .markdown-content ol {
       margin-top: 0.5rem;
       margin-bottom: 0.5rem;
       padding-left: 1.5rem;
     }
 
-    .bot-message ul { list-style-type: disc; }
-    .bot-message ol { list-style-type: decimal; }
+    .bot-message ul, .markdown-content ul { list-style-type: disc; }
+    .bot-message ol, .markdown-content ol { list-style-type: decimal; }
 
-    .bot-message li {
+    .bot-message li, .markdown-content li {
       margin-bottom: 0.25rem;
     }
 
-    .bot-message code {
+    .bot-message code, .markdown-content code {
       font-family: monospace;
       background-color: #f0f0f0;
       padding: 0.1rem 0.3rem;
@@ -321,7 +331,7 @@
       font-size: 0.9rem;
     }
 
-    .bot-message pre {
+    .bot-message pre, .markdown-content pre {
       background-color: #f5f5f5;
       padding: 0.5rem;
       border-radius: 5px;
@@ -329,33 +339,48 @@
       margin: 0.5rem 0;
     }
 
-    .bot-message pre code {
+    .bot-message pre code, .markdown-content pre code {
       background-color: transparent;
       padding: 0;
     }
 
-    .bot-message table {
+    .bot-message table, .markdown-content table {
       border-collapse: collapse;
       width: 100%;
       margin: 0.5rem 0;
     }
 
-    .bot-message th, .bot-message td {
+    .bot-message th, .bot-message td,
+    .markdown-content th, .markdown-content td {
       border: 1px solid #ddd;
       padding: 0.5rem;
     }
 
-    .bot-message th {
+    .bot-message th, .markdown-content th {
       background-color: #f5f5f5;
       font-weight: 600;
     }
 
-    .bot-message blockquote {
+    .bot-message blockquote, .markdown-content blockquote {
       border-left: 3px solid #4682B4;
       padding-left: 0.75rem;
       margin-left: 0;
       margin-right: 0;
       color: #666;
+    }
+    
+    /* Stili specifici per l'analisi dell'umore */
+    .markdown-content {
+      line-height: 1.6;
+    }
+    
+    .markdown-content p {
+      margin-bottom: 0.75rem;
+    }
+    
+    .markdown-content strong {
+      font-weight: 600;
+      color: #2c5282;
     }
 
     .message-time {
@@ -653,7 +678,7 @@
   <!-- Header parallax con effetto onda -->
   <header class="parallax-header mb-12">
     <div class="parallax-header-content h-full flex items-center justify-center">
-      <div class="text-center px-4">
+      <div class="text-center px-4 pb-12 md:pb-4"> <!-- Aggiunto padding-bottom per dispositivi mobili -->
         <div class="pulse-animation inline-block bg-white p-4 rounded-full shadow-lg mb-4">
           <svg class="w-20 h-20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="50" cy="50" r="50" fill="white"/>
@@ -1563,9 +1588,11 @@
           .then(response => response.json())
           .then(data => {
             if (data.mood_analysis && data.mood_analysis.trim()) {
+              // Converti il Markdown in HTML
+              const parsedMarkdown = marked.parse(data.mood_analysis);
               moodAnalysisDiv.innerHTML = 
-                '<div class="px-2">' + 
-                data.mood_analysis + 
+                '<div class="px-2 markdown-content">' + 
+                parsedMarkdown + 
                 '</div>';
             } else {
               moodAnalysisDiv.innerHTML = 

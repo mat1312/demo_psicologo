@@ -562,7 +562,7 @@ async def analyze_mood(request: AnalysisSourceRequest):
         
         # Se non ci sono dati, ritorna un messaggio di errore
         if not combined_text.strip():
-            return MoodAnalysisResponse(mood_analysis="<p>Dati insufficienti per l'analisi</p>")
+            return MoodAnalysisResponse(mood_analysis="# Analisi dell'Umore\n\n**Dati insufficienti per l'analisi.**\n\nNon ci sono conversazioni disponibili da analizzare.")
         
         # Analizza il testo combinato
         llm = ChatOpenAI(model_name=MODEL_NAME, temperature=0.2)
@@ -572,7 +572,20 @@ async def analyze_mood(request: AnalysisSourceRequest):
         2. Eventuali schemi di pensiero o comportamento ricorrenti
         3. Suggerimenti per il terapeuta su come procedere nella prossima sessione
         
-        Formatta la risposta in HTML con sottotitoli e paragrafi.
+        Formatta la risposta in Markdown seguendo questo formato:
+        
+        # Analisi della Conversazione Terapeutica
+        
+        ## 1. Valutazione dell'umore generale del paziente
+        [Inserisci qui la tua analisi...]
+        
+        ## 2. Eventuali schemi di pensiero o comportamento ricorrenti
+        [Inserisci qui la tua analisi...]
+        
+        ## 3. Suggerimenti per il terapeuta su come procedere nella prossima sessione
+        - Punto 1
+        - Punto 2
+        - Punto 3
         
         Conversazione:
         {combined_text}
@@ -584,7 +597,7 @@ async def analyze_mood(request: AnalysisSourceRequest):
     except Exception as e:
         logger.error(f"Errore nell'analisi dell'umore: {str(e)}", exc_info=True)
         return MoodAnalysisResponse(
-            mood_analysis=f"<p>Si è verificato un errore durante l'analisi dell'umore: {str(e)}</p>"
+            mood_analysis=f"# Errore nell'Analisi\n\nSi è verificato un errore durante l'analisi dell'umore: {str(e)}"
         )
 
 # Endpoint legacy per retrocompatibilità
