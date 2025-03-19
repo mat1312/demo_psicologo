@@ -57,7 +57,7 @@ def main():
     total_start_time = time.time()
     
     # Cerca tutti i file PDF nella cartella "data"
-    pdf_files = glob.glob('pdf_data/*.pdf')
+    pdf_files = glob.glob('pdf/*.pdf')
     total_files = len(pdf_files)
     
     if total_files == 0:
