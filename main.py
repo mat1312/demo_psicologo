@@ -128,6 +128,14 @@ Devi:
 Ricorda: in caso di emergenza o pensieri suicidi, devi sempre consigliare di contattare immediatamente 
 i servizi di emergenza o le linee telefoniche di supporto psicologico.
 
+Stato emotivo attuale dichiarato dal paziente: {current_mood}
+Adatta il tuo approccio terapeutico in base a questo stato emotivo. Per esempio:
+- Se il paziente si sente "ottimo", sostieni il suo stato positivo ma esplora comunque aree di crescita
+- Se il paziente si sente "male", usa un tono più delicato, empatico e supportivo
+- Se il paziente è "neutrale", aiutalo a esplorare e identificare meglio le sue emozioni
+Ricorda che lo stato emotivo dichiarato è solo un punto di partenza e potrebbe non riflettere completamente 
+la complessità emotiva del paziente.
+
 Base di conoscenza:
 {context}
 
@@ -164,7 +172,8 @@ def get_conversation_chain(session_id: str):
     memory = ConversationBufferMemory(
         memory_key="chat_history", 
         return_messages=True,
-        output_key="answer"
+        output_key="answer",
+        input_key="question"  # Aggiungiamo l'input_key per evitare che current_mood vada nella memoria
     )
     
     # Carica la conversazione dalla memoria
@@ -245,17 +254,24 @@ async def process_query(request: QueryRequest):
             "content": request.query
         })
         
+        # Gestione dell'umore
+        current_mood = "non specificato"
+        
         # Traccia l'umore se fornito
         if request.mood:
             mood_history.setdefault(request.session_id, [])
             mood_history[request.session_id].append(request.mood)
+            current_mood = request.mood
+        # Se non fornito ma c'è una storia di umore, usa l'ultimo
+        elif request.session_id in mood_history and mood_history[request.session_id]:
+            current_mood = mood_history[request.session_id][-1]
         
         # Mantiene la storia limitata per evitare di superare i limiti del contesto
         if len(conversation_history[request.session_id]) > MAX_HISTORY_LENGTH * 2:
             conversation_history[request.session_id] = conversation_history[request.session_id][-MAX_HISTORY_LENGTH*2:]
         
-        # Esegue la query
-        result = chain({"question": request.query})
+        # Esegue la query con l'umore corrente
+        result = chain({"question": request.query, "current_mood": current_mood})
         
         # Salva la risposta nella storia
         conversation_history[request.session_id].append({
@@ -271,11 +287,20 @@ async def process_query(request: QueryRequest):
         if len(conversation_history[request.session_id]) > 3:
             llm = ChatOpenAI(model_name=MODEL_NAME, temperature=0.1)
             messages_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation_history[request.session_id][-6:]])
+            
+            # Includi l'umore dichiarato nell'analisi
+            mood_info = ""
+            if current_mood != "non specificato":
+                mood_info = f"\nIl paziente ha dichiarato di sentirsi: {current_mood}"
+            
             analysis_prompt = f"""
             Analizza brevemente questa conversazione terapeutica e identifica:
             1. Temi principali emersi
             2. Stato emotivo del paziente
             3. Eventuali segnali di allarme
+            4. Se lo stato emotivo espresso nel contenuto della conversazione corrisponde all'umore dichiarato
+            
+            {mood_info}
             
             Conversazione:
             {messages_text}

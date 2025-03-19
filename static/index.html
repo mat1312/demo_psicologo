@@ -471,6 +471,8 @@
       padding: 0.5rem;
       background-color: #f5f7fa;
       border-radius: 12px;
+      transition: all 0.3s ease;
+      position: relative;
     }
 
     .mood-option {
@@ -485,20 +487,63 @@
 
     .mood-option:hover {
       background-color: rgba(70, 130, 180, 0.1);
+      transform: translateY(-2px);
     }
 
     .mood-option.selected {
       background-color: rgba(70, 130, 180, 0.2);
+      box-shadow: 0 2px 8px rgba(70, 130, 180, 0.2);
     }
 
     .mood-emoji {
       font-size: 1.5rem;
       margin-bottom: 0.25rem;
+      transition: transform 0.3s ease;
+    }
+
+    .mood-option:hover .mood-emoji {
+      transform: scale(1.2);
+    }
+
+    .mood-option.selected .mood-emoji {
+      transform: scale(1.2);
     }
 
     .mood-label {
       font-size: 0.7rem;
       color: #4a5568;
+    }
+    
+    /* Animazione per attirare l'attenzione sul selettore di umore */
+    @keyframes pulse-attention {
+      0% { box-shadow: 0 0 0 0 rgba(70, 130, 180, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(70, 130, 180, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(70, 130, 180, 0); }
+    }
+    
+    .pulse-attention {
+      animation: pulse-attention 1s ease-in-out 2;
+    }
+    
+    /* Badge per umore selezionato */
+    .mood-indicator {
+      position: absolute;
+      top: -10px;
+      right: 10px;
+      font-size: 0.7rem;
+      background-color: #4682B4;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      opacity: 0;
+      transform: translateY(5px);
+      transition: all 0.3s ease;
+    }
+    
+    .mood-indicator.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
   </style>
 </head>
@@ -515,6 +560,7 @@
           </svg>
         </div>
         <h1 class="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">Psicologo Virtuale</h1>
+        <p class="text-white text-lg opacity-90">Supporto psicologico sempre a tua disposizione</p>
       </div>
     </div>
     <div class="header-wave">
@@ -539,6 +585,7 @@
       <div class="p-6 relative">
         <!-- Mood Selector -->
         <div id="mood-selector" class="mood-selector mb-4">
+          <div class="mood-indicator" id="mood-indicator">Umore selezionato</div>
           <div class="mood-option" data-mood="great">
             <div class="mood-emoji">😁</div>
             <div class="mood-label">Ottimo</div>
@@ -558,6 +605,9 @@
           <div class="mood-option" data-mood="terrible">
             <div class="mood-emoji">😢</div>
             <div class="mood-label">Male</div>
+          </div>
+          <div class="absolute top-0 left-0 w-full text-center p-1 text-xs text-gray-500">
+            Come ti senti oggi?
           </div>
         </div>
       
@@ -612,7 +662,7 @@
         <div class="flex justify-center py-8">
           <div class="widget-container" id="widget-container">
             <!-- Widget ElevenLabs: sostituisci agent-id se necessario -->
-            <elevenlabs-convai agent-id="j9lr1Zv4W5s6khw0lxK5"></elevenlabs-convai>
+            <elevenlabs-convai agent-id="j8WuMd6P0Gc5aji3qRJK"></elevenlabs-convai>
           </div>
         </div>
       </div>
@@ -849,8 +899,21 @@
       // Pulisci la chat
       chatContainer.innerHTML = '';
       
+      // Resetta il selettore di umore
+      document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
+      document.getElementById('mood-indicator').classList.remove('visible');
+      
+      // Evidenzia il selettore di umore con un'animazione leggera
+      const moodSelector = document.getElementById('mood-selector');
+      if (moodSelector) {
+        moodSelector.classList.add('pulse-attention');
+        setTimeout(() => {
+          moodSelector.classList.remove('pulse-attention');
+        }, 2000);
+      }
+      
       // Aggiungi un messaggio di benvenuto
-      addBotMessage('Benvenuto! Sono il tuo psicologo virtuale. Come ti senti oggi? Se vuoi, puoi selezionare il tuo umore attuale sopra la chat per aiutarmi a comprendere meglio il tuo stato d\'animo.');
+      addBotMessage('Benvenuto! Sono il tuo psicologo virtuale. Come ti senti oggi? <strong>Seleziona il tuo umore attuale</strong> sopra la chat per aiutarmi a comprendere meglio il tuo stato d\'animo e personalizzare la nostra sessione.');
     }
     
     // Funzione per aggiungere un messaggio dell'utente
@@ -948,6 +1011,17 @@
         const selectedMood = document.querySelector('.mood-option.selected');
         const mood = selectedMood ? selectedMood.getAttribute('data-mood') : null;
         
+        // Se è la prima interazione e non è stato selezionato un umore, mostra un suggerimento
+        if (!mood && !document.querySelector('.chat-message.bot-message:not(:first-child)')) {
+          const moodSelector = document.getElementById('mood-selector');
+          if (moodSelector) {
+            moodSelector.classList.add('pulse-attention');
+            setTimeout(() => {
+              moodSelector.classList.remove('pulse-attention');
+            }, 2000);
+          }
+        }
+        
         // Chiamata API al backend
         const response = await fetch('/therapy-session', {
           method: 'POST',
@@ -984,9 +1058,12 @@
       }
     }
     
-    // Assicurati che il DOM sia completamente caricato prima di inizializzare gli event listener
+          // Assicurati che il DOM sia completamente caricato prima di inizializzare gli event listener
     document.addEventListener('DOMContentLoaded', function() {
       console.log("DOM caricato, inizializzazione eventi");
+      
+      // Variabile globale per tenere traccia dell'umore
+      let currentMood = null;
       
       // Inizializza il selettore di umore
       const moodOptions = document.querySelectorAll('.mood-option');
@@ -996,6 +1073,45 @@
           moodOptions.forEach(opt => opt.classList.remove('selected'));
           // Aggiungi la selezione corrente
           this.classList.add('selected');
+          // Memorizza l'umore selezionato
+          currentMood = this.getAttribute('data-mood');
+          console.log("Umore selezionato:", currentMood);
+          
+          // Mostra l'indicatore di umore selezionato
+          const moodIndicator = document.getElementById('mood-indicator');
+          if (moodIndicator) {
+            moodIndicator.textContent = "Umore: " + this.querySelector('.mood-label').textContent;
+            moodIndicator.classList.add('visible');
+          }
+          
+          // Opzionalmente, notifica all'utente che l'umore è stato selezionato
+          const notification = document.createElement('div');
+          notification.className = "fixed top-4 right-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-md transition-opacity duration-500 ease-in-out opacity-0";
+          notification.innerHTML = `<div class="flex items-center">
+            <div class="py-1"><svg class="w-6 h-6 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg></div>
+            <div>
+              <p class="font-bold">Umore aggiornato</p>
+              <p class="text-sm">Le risposte saranno adattate al tuo umore: ${this.querySelector('.mood-label').textContent}</p>
+            </div>
+          </div>`;
+          document.body.appendChild(notification);
+          
+          // Anima la notifica
+          setTimeout(() => {
+            notification.classList.remove('opacity-0');
+            notification.classList.add('opacity-100');
+          }, 10);
+          
+          // Rimuovi la notifica dopo 3 secondi
+          setTimeout(() => {
+            notification.classList.remove('opacity-100');
+            notification.classList.add('opacity-0');
+            setTimeout(() => {
+              notification.remove();
+            }, 500);
+          }, 3000);
         });
       });
       
