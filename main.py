@@ -121,6 +121,25 @@ class AnalysisSourceRequest(BaseModel):
     analyze_chatbot: bool = True
     analyze_elevenlabs: bool = False
     elevenlabs_conversation_id: Optional[str] = None
+    
+ # Modelli per l'analisi delle patologie   
+    
+class PathologyAnalysisRequest(BaseModel):
+    session_id: str
+    analyze_chatbot: bool = True
+    analyze_elevenlabs: bool = False
+    elevenlabs_conversation_id: Optional[str] = None
+
+class PathologyItem(BaseModel):
+    name: str
+    description: str
+    confidence: float
+    key_symptoms: List[str]
+    source: Optional[str] = None
+
+class PathologyAnalysisResponse(BaseModel):
+    possible_pathologies: List[PathologyItem]
+    analysis_summary: str
 
 # Memoria delle conversazioni per ogni sessione
 conversation_history: Dict[str, List[Dict[str, str]]] = {}
@@ -610,6 +629,122 @@ async def analyze_mood_legacy(session_id: str):
         analyze_elevenlabs=False
     )
     return await analyze_mood(request)
+
+
+@app.post("/api/pathology-analysis", response_model=PathologyAnalysisResponse)
+async def analyze_pathologies(request: PathologyAnalysisRequest):
+    """Analizza le conversazioni per identificare possibili patologie psicologiche."""
+    try:
+        combined_text = ""
+        
+        # Raccogli conversazione dal chatbot se richiesto
+        if request.analyze_chatbot:
+            if request.session_id in conversation_history and conversation_history[request.session_id]:
+                chatbot_messages = conversation_history[request.session_id]
+                chatbot_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chatbot_messages])
+                combined_text += "## Conversazione Chatbot:\n" + chatbot_text + "\n\n"
+            else:
+                combined_text += "## Conversazione Chatbot:\nNessuna conversazione disponibile\n\n"
+        
+        # Raccogli conversazione da ElevenLabs se richiesto
+        if request.analyze_elevenlabs and request.elevenlabs_conversation_id:
+            try:
+                elevenlabs_data = get_elevenlabs_conversation(request.elevenlabs_conversation_id)
+                elevenlabs_text = format_elevenlabs_transcript(elevenlabs_data)
+                combined_text += "## Conversazione Vocale ElevenLabs:\n" + elevenlabs_text + "\n\n"
+            except Exception as e:
+                combined_text += f"## Conversazione Vocale ElevenLabs:\nErrore nel recupero della conversazione: {str(e)}\n\n"
+        
+        # Se non ci sono dati, ritorna un messaggio di errore
+        if not combined_text.strip():
+            return PathologyAnalysisResponse(
+                possible_pathologies=[],
+                analysis_summary="Dati insufficienti per l'analisi. Non ci sono conversazioni disponibili da analizzare."
+            )
+        
+        # Utilizziamo il vector store per trovare documenti rilevanti sulle patologie
+        vector_store = get_vectorstore()
+        retriever = vector_store.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": SIMILARITY_TOP_K}
+        )
+        
+        # Estrai i sintomi e comportamenti rilevanti dalla conversazione
+        llm = ChatOpenAI(model_name=MODEL_NAME, temperature=0.2)
+        extraction_prompt = f"""
+        Analizza questa conversazione terapeutica ed estrai i sintomi principali, 
+        comportamenti problematici o schemi di pensiero che potrebbero essere 
+        rilevanti per un'analisi clinica. Fornisci solo i sintomi e comportamenti,
+        senza interpretarli o diagnosticarli.
+        
+        Conversazione:
+        {combined_text}
+        
+        Estrai e elenca solo i sintomi, comportamenti o schemi di pensiero rilevanti, 
+        uno per riga. Sii specifico e dettagliato, concentrandoti sui fatti osservabili.
+        """
+        
+        extraction_response = llm.invoke(extraction_prompt)
+        extracted_behaviors = extraction_response.content
+        
+        # Utilizziamo i comportamenti estratti per interrogare il vector store
+        docs = retriever.get_relevant_documents(extracted_behaviors)
+        
+        # Analisi delle patologie basata sui documenti recuperati e sui comportamenti estratti
+        analysis_prompt = f"""
+        Basandoti sui sintomi e comportamenti estratti dalla conversazione terapeutica e sui documenti
+        clinici correlati, identifica possibili patologie psicologiche che potrebbero richiedere ulteriore
+        valutazione. Per ogni patologia, fornisci un breve descrizione, i sintomi chiave che l'hanno fatta
+        emergere dall'analisi, e una stima di confidenza (da 0.0 a 1.0) basata su quanti sintomi sono presenti.
+        
+        Sintomi estratti dalla conversazione:
+        {extracted_behaviors}
+        
+        Documenti clinici rilevanti:
+        {[doc.page_content for doc in docs]}
+        
+        Fornisci la risposta nel seguente formato JSON:
+        {{
+            "possible_pathologies": [
+                {{
+                    "name": "Nome della patologia",
+                    "description": "Breve descrizione",
+                    "confidence": 0.7,
+                    "key_symptoms": ["sintomo 1", "sintomo 2", ...],
+                    "source": "Nome del documento di riferimento"
+                }},
+                ...
+            ],
+            "analysis_summary": "Breve riassunto dell'analisi complessiva"
+        }}
+        
+        Includi solo patologie con un minimo di confidenza (0.4 o superiore).
+        """
+        
+        analysis_response = llm.invoke(analysis_prompt)
+        
+        # Estrai il JSON dalla risposta
+        import re
+        import json
+        json_match = re.search(r'\{.*\}', analysis_response.content, re.DOTALL)
+        
+        if json_match:
+            json_str = json_match.group(0)
+            result = json.loads(json_str)
+            return PathologyAnalysisResponse(**result)
+        else:
+            # Fallback nel caso il formato non sia corretto
+            return PathologyAnalysisResponse(
+                possible_pathologies=[],
+                analysis_summary="Non è stato possibile identificare patologie specifiche dai dati forniti. La conversazione potrebbe non contenere informazioni clinicamente rilevanti o potrebbe essere necessario un colloquio più approfondito."
+            )
+    
+    except Exception as e:
+        logger.error(f"Errore nell'analisi delle patologie: {str(e)}", exc_info=True)
+        return PathologyAnalysisResponse(
+            possible_pathologies=[],
+            analysis_summary=f"Si è verificato un errore durante l'analisi: {str(e)}"
+        )
 
 # Avvio dell'applicazione
 if __name__ == "__main__":
