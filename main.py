@@ -655,11 +655,44 @@ async def analyze_pathologies(request: PathologyAnalysisRequest):
             except Exception as e:
                 combined_text += f"## Conversazione Vocale ElevenLabs:\nErrore nel recupero della conversazione: {str(e)}\n\n"
         
-        # Se non ci sono dati, ritorna un messaggio di errore
+        # Se non ci sono dati o sono insufficienti, ritorna un messaggio di errore
         if not combined_text.strip():
             return PathologyAnalysisResponse(
                 possible_pathologies=[],
                 analysis_summary="Dati insufficienti per l'analisi. Non ci sono conversazioni disponibili da analizzare."
+            )
+            
+        # Verifica che ci siano abbastanza messaggi dell'utente per un'analisi significativa
+        # Contiamo quanti messaggi utente ci sono e quante parole contengono in totale
+        user_messages_count = 0
+        total_user_words = 0
+        
+        if request.analyze_chatbot and request.session_id in conversation_history:
+            for msg in conversation_history[request.session_id]:
+                if msg["role"] == "user":
+                    user_messages_count += 1
+                    total_user_words += len(msg["content"].split())
+        
+        # Se ci sono ElevenLabs, contiamo anche quelli
+        if request.analyze_elevenlabs and request.elevenlabs_conversation_id:
+            try:
+                elevenlabs_data = get_elevenlabs_conversation(request.elevenlabs_conversation_id)
+                for msg in elevenlabs_data.get("transcript", []):
+                    if msg.get("role") == "user" and msg.get("message"):
+                        user_messages_count += 1
+                        total_user_words += len(msg.get("message", "").split())
+            except Exception:
+                # Se c'è un errore, ignoriamo i messaggi ElevenLabs
+                pass
+        
+        # Requisiti minimi per procedere con l'analisi
+        MIN_USER_MESSAGES = 1
+        MIN_USER_WORDS = 10
+        
+        if user_messages_count < MIN_USER_MESSAGES or total_user_words < MIN_USER_WORDS:
+            return PathologyAnalysisResponse(
+                possible_pathologies=[],
+                analysis_summary=f"Dati insufficienti per un'analisi clinica significativa. Sono necessari almeno {MIN_USER_MESSAGES} messaggi e {MIN_USER_WORDS} parole dall'utente per procedere. Attualmente: {user_messages_count} messaggi, {total_user_words} parole."
             )
         
         # Utilizziamo il vector store per trovare documenti rilevanti sulle patologie

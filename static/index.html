@@ -905,6 +905,73 @@
       </div>
     </section>
     
+    <!-- Analisi Patologie -->
+    <section id="pathology-analysis-section" class="card-3d mb-12 fade-in-section" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="600">
+      <div class="card-header">
+        <h3 class="text-xl font-semibold text-gray-800 flex items-center">
+          <i class="fas fa-stethoscope therapy-text-blue mr-3"></i>
+          Analisi Clinica
+          <span class="badge-therapy ml-3">
+            <i class="fas fa-clipboard-check"></i> Versione Demo
+          </span>
+        </h3>
+      </div>
+      <div class="p-6">
+        <!-- Selettore di Fonti per Analisi delle Patologie - Riutilizziamo lo stesso stile -->
+        <div class="source-selector mb-4">
+          <div class="source-selector-title">
+            <i class="fas fa-filter"></i> Seleziona Fonti per Analisi Clinica
+          </div>
+          <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="custom-checkbox">
+                <input type="checkbox" id="pathology-analyze-chatbot" checked>
+                <span class="checkmark"></span>
+                Conversazione Testuale
+              </label>
+              
+              <label class="custom-checkbox">
+                <input type="checkbox" id="pathology-analyze-elevenlabs">
+                <span class="checkmark"></span>
+                Conversazione Vocale (ElevenLabs)
+              </label>
+            </div>
+            
+            <div id="pathology-elevenlabs-selector" class="hidden">
+              <label for="pathology-elevenlabs-conversation" class="block text-sm font-medium text-gray-700 mb-1">
+                Seleziona conversazione ElevenLabs:
+              </label>
+              <select id="pathology-elevenlabs-conversation" class="el-conversation-select">
+                <option value="">Seleziona una conversazione...</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gray-50 p-5 rounded-xl mb-4 border border-gray-100">
+          <p class="text-gray-700 mb-3">Analizza la conversazione per identificare possibili indicazioni cliniche utilizzando il manuale di psicologia.</p>
+          <button 
+            id="btnAnalyzePathology" 
+            class="btn-therapy font-medium py-2 px-5 rounded-lg flex items-center">
+            <i class="fas fa-microscope mr-2"></i>
+            Analizza indicazioni cliniche
+          </button>
+        </div>
+        
+        <!-- Area di visualizzazione dei risultati dell'analisi -->
+        <div id="pathology-analysis-display" class="min-h-48 overflow-hidden">
+          <!-- Contenuto iniziale vuoto -->
+          <div class="flex flex-col items-center justify-center text-gray-500 p-8">
+            <svg class="w-16 h-16 mb-4 opacity-25" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <p class="text-center">Premi il pulsante "Analizza indicazioni cliniche" per avviare l'analisi.</p>
+            <p class="text-center text-sm mt-2">L'analisi utilizzerà il manuale di psicologia clinica per identificare possibili indicazioni.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
     <!-- Info Cards -->
     <section class="mb-12 fade-in-section" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="600">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -933,280 +1000,6 @@
         </div>
       </div>
     </section>
-
-
-
-    <!-- Analisi Patologie -->
-<section id="pathology-analysis-section" class="card-3d mb-12 fade-in-section" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="600">
-  <div class="card-header">
-    <h3 class="text-xl font-semibold text-gray-800 flex items-center">
-      <i class="fas fa-stethoscope therapy-text-blue mr-3"></i>
-      Analisi Clinica
-      <span class="badge-therapy ml-3">
-        <i class="fas fa-clipboard-check"></i> Versione Demo
-      </span>
-    </h3>
-  </div>
-  <div class="p-6">
-    <!-- Selettore di Fonti per Analisi delle Patologie - Riutilizziamo lo stesso stile -->
-    <div class="source-selector mb-4">
-      <div class="source-selector-title">
-        <i class="fas fa-filter"></i> Seleziona Fonti per Analisi Clinica
-      </div>
-      <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="custom-checkbox">
-            <input type="checkbox" id="pathology-analyze-chatbot" checked>
-            <span class="checkmark"></span>
-            Conversazione Testuale
-          </label>
-          
-          <label class="custom-checkbox">
-            <input type="checkbox" id="pathology-analyze-elevenlabs">
-            <span class="checkmark"></span>
-            Conversazione Vocale (ElevenLabs)
-          </label>
-        </div>
-        
-        <div id="pathology-elevenlabs-selector" class="hidden">
-          <label for="pathology-elevenlabs-conversation" class="block text-sm font-medium text-gray-700 mb-1">
-            Seleziona conversazione ElevenLabs:
-          </label>
-          <select id="pathology-elevenlabs-conversation" class="el-conversation-select">
-            <option value="">Seleziona una conversazione...</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    
-    <div class="bg-gray-50 p-5 rounded-xl mb-4 border border-gray-100">
-      <p class="text-gray-700 mb-3">Analizza la conversazione per identificare possibili indicazioni cliniche utilizzando il manuale di psicologia.</p>
-      <button 
-        id="btnAnalyzePathology" 
-        class="btn-therapy font-medium py-2 px-5 rounded-lg flex items-center">
-        <i class="fas fa-microscope mr-2"></i>
-        Analizza indicazioni cliniche
-      </button>
-    </div>
-    
-    <!-- Area di visualizzazione dei risultati dell'analisi -->
-    <div id="pathology-analysis-display" class="min-h-48 overflow-hidden">
-      <!-- Contenuto iniziale vuoto -->
-      <div class="flex flex-col items-center justify-center text-gray-500 p-8">
-        <svg class="w-16 h-16 mb-4 opacity-25" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        <p class="text-center">Premi il pulsante "Analizza indicazioni cliniche" per avviare l'analisi.</p>
-        <p class="text-center text-sm mt-2">L'analisi utilizzerà il manuale di psicologia clinica per identificare possibili indicazioni.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Aggiungi lo script per gestire l'analisi delle patologie -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Gestione checkboxes per l'analisi delle patologie
-    const checkboxPathologyChatbot = document.getElementById('pathology-analyze-chatbot');
-    const checkboxPathologyElevenLabs = document.getElementById('pathology-analyze-elevenlabs');
-    const pathologyElevenLabsSelector = document.getElementById('pathology-elevenlabs-selector');
-    
-    if (checkboxPathologyElevenLabs && pathologyElevenLabsSelector) {
-      checkboxPathologyElevenLabs.addEventListener('change', function() {
-        if (this.checked) {
-          pathologyElevenLabsSelector.classList.remove('hidden');
-          // Popola il selettore con le conversazioni già caricate (o caricale se necessario)
-          populatePathologyElevenLabsSelect();
-        } else {
-          pathologyElevenLabsSelector.classList.add('hidden');
-        }
-      });
-    }
-    
-    // Funzione per popolare il selettore di conversazioni ElevenLabs per l'analisi patologica
-    function populatePathologyElevenLabsSelect() {
-      const select = document.getElementById('pathology-elevenlabs-conversation');
-      if (!select) return;
-      
-      // Se abbiamo già caricato le conversazioni, usiamo quelle
-      if (elevenlabsConversations && elevenlabsConversations.length > 0) {
-        select.innerHTML = '<option value="">Seleziona una conversazione...</option>';
-        
-        elevenlabsConversations.forEach(conv => {
-          // Formatta la data da timestamp UNIX
-          const date = new Date(conv.start_time_unix_secs * 1000);
-          const formattedDate = date.toLocaleString();
-          
-          const option = document.createElement('option');
-          option.value = conv.conversation_id;
-          option.textContent = `${formattedDate} (${conv.message_count || 0} messaggi)`;
-          select.appendChild(option);
-        });
-      } else {
-        // Altrimenti, carica le conversazioni
-        select.innerHTML = '<option value="">Caricamento conversazioni...</option>';
-        loadElevenLabsConversations().then(() => {
-          populatePathologyElevenLabsSelect();
-        });
-      }
-    }
-    
-    // Analizza le conversazioni per identificare possibili patologie
-    const btnAnalyzePathology = document.getElementById('btnAnalyzePathology');
-    if (btnAnalyzePathology) {
-      btnAnalyzePathology.addEventListener('click', function() {
-        const pathologyAnalysisDiv = document.getElementById('pathology-analysis-display');
-        if (!pathologyAnalysisDiv) {
-          console.error("Elemento pathology-analysis-display non trovato");
-          return;
-        }
-        
-        if (!sessionId) {
-          pathologyAnalysisDiv.innerHTML = `
-            <div class="p-8 text-center">
-              <div class="inline-block p-4 rounded-full bg-yellow-100 mb-4">
-                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <p class="text-gray-700 font-medium">Inizia una conversazione per analizzare le indicazioni cliniche</p>
-            </div>`;
-          return;
-        }
-        
-        // Ottieni le fonti selezionate per l'analisi
-        const analyzeChatbot = document.getElementById('pathology-analyze-chatbot').checked;
-        const analyzeElevenlabs = document.getElementById('pathology-analyze-elevenlabs').checked;
-        const elevenlabsConversationId = analyzeElevenlabs ? 
-          document.getElementById('pathology-elevenlabs-conversation').value : null;
-        
-        if (!analyzeChatbot && (!analyzeElevenlabs || !elevenlabsConversationId)) {
-          pathologyAnalysisDiv.innerHTML = `
-            <div class="p-8 text-center">
-              <div class="inline-block p-4 rounded-full bg-yellow-100 mb-4">
-                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                </svg>
-              </div>
-              <p class="text-yellow-600 font-medium">Seleziona almeno una fonte da analizzare</p>
-            </div>`;
-          return;
-        }
-        
-        // Mostra il loading
-        pathologyAnalysisDiv.innerHTML = `
-          <div class="flex flex-col items-center justify-center py-12">
-            <svg class="animate-spin h-12 w-12 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p class="text-gray-600">Analisi in corso...</p>
-            <p class="text-sm text-gray-500 mt-2">Sto esaminando la conversazione con il database di psicologia clinica</p>
-          </div>`;
-        
-        // Chiamata API per l'analisi delle patologie
-        fetch('/api/pathology-analysis', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            session_id: sessionId,
-            analyze_chatbot: analyzeChatbot,
-            analyze_elevenlabs: analyzeElevenlabs,
-            elevenlabs_conversation_id: elevenlabsConversationId
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log("Dati analisi patologie:", data);
-          
-          if (data.possible_pathologies && data.possible_pathologies.length > 0) {
-            // Contenitore per i risultati dell'analisi
-            let resultsHTML = `
-              <div class="mb-6 bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-                <h4 class="text-lg font-medium text-blue-700 mb-3">Riepilogo dell'Analisi</h4>
-                <p class="text-gray-700">${data.analysis_summary}</p>
-              </div>
-              <h4 class="text-lg font-medium text-blue-700 mb-4">Possibili Indicazioni Cliniche</h4>
-              <div class="space-y-4">`;
-            
-            // Aggiungi ogni patologia trovata
-            data.possible_pathologies.forEach(pathology => {
-              // Calcola il colore della confidenza in base al valore
-              let confidenceColor = 'bg-green-100 text-green-800';
-              if (pathology.confidence < 0.5) {
-                confidenceColor = 'bg-yellow-100 text-yellow-800';
-              } else if (pathology.confidence > 0.75) {
-                confidenceColor = 'bg-blue-100 text-blue-800';
-              }
-              
-              // Formatta i sintomi chiave
-              let symptomsHTML = '';
-              if (pathology.key_symptoms && pathology.key_symptoms.length) {
-                symptomsHTML = '<ul class="list-disc ml-5 mt-2 text-sm text-gray-600">';
-                pathology.key_symptoms.forEach(symptom => {
-                  symptomsHTML += `<li>${symptom}</li>`;
-                });
-                symptomsHTML += '</ul>';
-              }
-              
-              // Aggiunge la card della patologia
-              resultsHTML += `
-                <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <div class="flex justify-between items-start mb-2">
-                    <h5 class="font-semibold text-gray-800">${pathology.name}</h5>
-                    <span class="${confidenceColor} text-xs px-2 py-1 rounded-full">${Math.round(pathology.confidence * 100)}% match</span>
-                  </div>
-                  <p class="text-gray-700 mb-2">${pathology.description}</p>
-                  <div class="mb-1 text-sm font-medium text-gray-700">Indicatori rilevati:</div>
-                  ${symptomsHTML}
-                  ${pathology.source ? `<div class="text-xs text-gray-500 mt-2">Fonte: ${pathology.source}</div>` : ''}
-                </div>`;
-            });
-            
-            resultsHTML += `</div>
-            <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100 text-xs text-gray-600">
-              <strong class="text-blue-700">Nota:</strong> Questa analisi è solo a scopo dimostrativo e non sostituisce una valutazione professionale. I risultati sono generati automaticamente in base ai pattern rilevati nella conversazione.
-            </div>`;
-            
-            pathologyAnalysisDiv.innerHTML = resultsHTML;
-          } else {
-            // Nessuna patologia trovata o dati insufficienti
-            pathologyAnalysisDiv.innerHTML = `
-              <div class="p-8 text-center">
-                <div class="inline-block p-4 rounded-full bg-blue-100 mb-4">
-                  <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                </div>
-                <p class="text-gray-700 font-medium">Dati insufficienti per un'analisi clinica completa</p>
-                <p class="text-gray-600 mt-2">${data.analysis_summary || 'Continua la conversazione per ottenere un\'analisi più approfondita.'}</p>
-              </div>`;
-          }
-        })
-        .catch(err => {
-          console.error("Errore nell'analisi delle patologie:", err);
-          pathologyAnalysisDiv.innerHTML = `
-            <div class="p-8 text-center">
-              <div class="inline-block p-4 rounded-full bg-red-100 mb-4">
-                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
-              <p class="text-red-600 font-medium">Si è verificato un errore durante l'analisi</p>
-              <p class="text-gray-600 mt-2">Dettagli: ${err.message || 'Errore sconosciuto'}</p>
-            </div>`;
-        });
-      });
-    } else {
-      console.error("Elemento btnAnalyzePathology non trovato");
-    }
-  });
-</script>
-
-
-
     
     <!-- Footer -->
     <footer class="text-center text-gray-600 py-8 mb-6">
@@ -1889,6 +1682,296 @@
         console.log("Event listener per pulsante analisi umore inizializzato");
       } else {
         console.error("Elemento btnAnalyzeMood non trovato");
+      }
+      
+      // Gestione checkboxes per l'analisi delle patologie
+      const checkboxPathologyChatbot = document.getElementById('pathology-analyze-chatbot');
+      const checkboxPathologyElevenLabs = document.getElementById('pathology-analyze-elevenlabs');
+      const pathologyElevenLabsSelector = document.getElementById('pathology-elevenlabs-selector');
+      
+      if (checkboxPathologyElevenLabs && pathologyElevenLabsSelector) {
+        checkboxPathologyElevenLabs.addEventListener('change', function() {
+          if (this.checked) {
+            pathologyElevenLabsSelector.classList.remove('hidden');
+            // Popola il selettore con le conversazioni già caricate (o caricale se necessario)
+            populatePathologyElevenLabsSelect();
+          } else {
+            pathologyElevenLabsSelector.classList.add('hidden');
+          }
+        });
+      }
+      
+      // Funzione per popolare il selettore di conversazioni ElevenLabs per l'analisi patologica
+      function populatePathologyElevenLabsSelect() {
+        const select = document.getElementById('pathology-elevenlabs-conversation');
+        if (!select) return;
+        
+        // Se abbiamo già caricato le conversazioni, usiamo quelle
+        if (elevenlabsConversations && elevenlabsConversations.length > 0) {
+          select.innerHTML = '<option value="">Seleziona una conversazione...</option>';
+          
+          elevenlabsConversations.forEach(conv => {
+            // Formatta la data da timestamp UNIX
+            const date = new Date(conv.start_time_unix_secs * 1000);
+            const formattedDate = date.toLocaleString();
+            
+            const option = document.createElement('option');
+            option.value = conv.conversation_id;
+            option.textContent = `${formattedDate} (${conv.message_count || 0} messaggi)`;
+            select.appendChild(option);
+          });
+        } else {
+          // Altrimenti, carica le conversazioni
+          select.innerHTML = '<option value="">Caricamento conversazioni...</option>';
+          loadElevenLabsConversations().then(() => {
+            populatePathologyElevenLabsSelect();
+          });
+        }
+      }
+      
+      // Analizza le conversazioni per identificare possibili patologie
+      const btnAnalyzePathology = document.getElementById('btnAnalyzePathology');
+      if (btnAnalyzePathology) {
+        btnAnalyzePathology.addEventListener('click', function() {
+          const pathologyAnalysisDiv = document.getElementById('pathology-analysis-display');
+          if (!pathologyAnalysisDiv) {
+            console.error("Elemento pathology-analysis-display non trovato");
+            return;
+          }
+          
+          if (!sessionId) {
+            pathologyAnalysisDiv.innerHTML = `
+              <div class="p-8 text-center">
+                <div class="inline-block p-4 rounded-full bg-yellow-100 mb-4">
+                  <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <p class="text-gray-700 font-medium">Inizia una conversazione per analizzare le indicazioni cliniche</p>
+              </div>`;
+            return;
+          }
+          
+          // Ottieni le fonti selezionate per l'analisi
+          const analyzeChatbot = document.getElementById('pathology-analyze-chatbot').checked;
+          const analyzeElevenlabs = document.getElementById('pathology-analyze-elevenlabs').checked;
+          const elevenlabsConversationId = analyzeElevenlabs ? 
+            document.getElementById('pathology-elevenlabs-conversation').value : null;
+          
+          if (!analyzeChatbot && (!analyzeElevenlabs || !elevenlabsConversationId)) {
+            pathologyAnalysisDiv.innerHTML = `
+              <div class="p-8 text-center">
+                <div class="inline-block p-4 rounded-full bg-yellow-100 mb-4">
+                  <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                </div>
+                <p class="text-yellow-600 font-medium">Seleziona almeno una fonte da analizzare</p>
+              </div>`;
+            return;
+          }
+          
+          // Funzione per procedere con l'analisi
+          function proceedWithAnalysis() {
+            // Mostra il loading
+            pathologyAnalysisDiv.innerHTML = `
+              <div class="flex flex-col items-center justify-center py-12">
+                <svg class="animate-spin h-12 w-12 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-gray-600">Analisi in corso...</p>
+                <p class="text-sm text-gray-500 mt-2">Sto esaminando la conversazione con il database di psicologia clinica</p>
+              </div>`;
+            
+            fetch('/api/pathology-analysis', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                session_id: sessionId,
+                analyze_chatbot: analyzeChatbot,
+                analyze_elevenlabs: analyzeElevenlabs,
+                elevenlabs_conversation_id: elevenlabsConversationId
+              })
+            })
+            .then(response => response.json())
+            .then(data => {
+              console.log("Dati analisi patologie:", data);
+              
+              if (data.possible_pathologies && data.possible_pathologies.length > 0) {
+                // Contenitore per i risultati dell'analisi
+                let resultsHTML = `
+                  <div class="mb-6 bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                    <h4 class="text-lg font-medium text-blue-700 mb-3">Riepilogo dell'Analisi</h4>
+                    <p class="text-gray-700">${data.analysis_summary}</p>
+                  </div>
+                  <h4 class="text-lg font-medium text-blue-700 mb-4">Possibili Indicazioni Cliniche</h4>
+                  <div class="space-y-4">`;
+                
+                // Aggiungi ogni patologia trovata
+                data.possible_pathologies.forEach(pathology => {
+                  // Calcola il colore della confidenza in base al valore
+                  let confidenceColor = 'bg-green-100 text-green-800';
+                  if (pathology.confidence < 0.5) {
+                    confidenceColor = 'bg-yellow-100 text-yellow-800';
+                  } else if (pathology.confidence > 0.75) {
+                    confidenceColor = 'bg-blue-100 text-blue-800';
+                  }
+                  
+                  // Formatta i sintomi chiave
+                  let symptomsHTML = '';
+                  if (pathology.key_symptoms && pathology.key_symptoms.length) {
+                    symptomsHTML = '<ul class="list-disc ml-5 mt-2 text-sm text-gray-600">';
+                    pathology.key_symptoms.forEach(symptom => {
+                      symptomsHTML += `<li>${symptom}</li>`;
+                    });
+                    symptomsHTML += '</ul>';
+                  }
+                  
+                  // Aggiunge la card della patologia
+                  resultsHTML += `
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                      <div class="flex justify-between items-start mb-2">
+                        <h5 class="font-semibold text-gray-800">${pathology.name}</h5>
+                        <span class="${confidenceColor} text-xs px-2 py-1 rounded-full">${Math.round(pathology.confidence * 100)}% match</span>
+                      </div>
+                      <p class="text-gray-700 mb-2">${pathology.description}</p>
+                      <div class="mb-1 text-sm font-medium text-gray-700">Indicatori rilevati:</div>
+                      ${symptomsHTML}
+                      ${pathology.source ? `<div class="text-xs text-gray-500 mt-2">Fonte: ${pathology.source}</div>` : ''}
+                    </div>`;
+                });
+                
+                resultsHTML += `</div>
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100 text-xs text-gray-600">
+                  <strong class="text-blue-700">Nota:</strong> Questa analisi è solo a scopo dimostrativo e non sostituisce una valutazione professionale. I risultati sono generati automaticamente in base ai pattern rilevati nella conversazione.
+                </div>`;
+                
+                pathologyAnalysisDiv.innerHTML = resultsHTML;
+              } else {
+                // Nessuna patologia trovata o dati insufficienti
+                const insufficientDataMessage = data.analysis_summary || 'Continua la conversazione per ottenere un\'analisi più approfondita.';
+                const isMinimumDataMessage = insufficientDataMessage.includes("Sono necessari almeno");
+                
+                // Personalizza ulteriormente il messaggio in base al motivo dei dati insufficienti
+                pathologyAnalysisDiv.innerHTML = `
+                  <div class="p-8 text-center">
+                    <div class="inline-block p-4 rounded-full ${isMinimumDataMessage ? 'bg-yellow-100' : 'bg-blue-100'} mb-4">
+                      <svg class="w-8 h-8 ${isMinimumDataMessage ? 'text-yellow-600' : 'text-blue-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <p class="${isMinimumDataMessage ? 'text-yellow-700' : 'text-gray-700'} font-medium">
+                      ${isMinimumDataMessage ? 'Conversazione troppo breve per l\'analisi' : 'Dati insufficienti per un\'analisi clinica completa'}
+                    </p>
+                    <p class="text-gray-600 mt-2">${insufficientDataMessage}</p>
+${isMinimumDataMessage ? `
+                    <div class="mt-6 p-4 bg-yellow-50 border border-yellow-100 rounded-lg text-left">
+                      <p class="text-sm text-yellow-800">
+                        <strong>Suggerimento:</strong> Per ottenere un'analisi clinica significativa, è necessario che la conversazione contenga:
+                      </p>
+                      <ul class="list-disc ml-5 mt-2 text-sm text-yellow-700">
+                        <li>Un numero sufficiente di messaggi scambiati</li>
+                        <li>Contenuti significativi sulla condizione emotiva e psicologica</li>
+                        <li>Descrizioni di eventuali sintomi, preoccupazioni o comportamenti rilevanti</li>
+                      </ul>
+                    </div>
+                    ` : ''}
+                  </div>`;
+              }
+            })
+            .catch(err => {
+              console.error("Errore nell'analisi delle patologie:", err);
+              pathologyAnalysisDiv.innerHTML = `
+                <div class="p-8 text-center">
+                  <div class="inline-block p-4 rounded-full bg-red-100 mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <p class="text-red-600 font-medium">Si è verificato un errore durante l'analisi</p>
+                  <p class="text-gray-600 mt-2">Dettagli: ${err.message || 'Errore sconosciuto'}</p>
+                </div>`;
+            });
+          }
+          
+          // Verifica preventiva che ci siano abbastanza messaggi nella conversazione
+          let hasSufficientData = false;
+          let minUserMessages = 3; // Stesso valore usato nel backend
+          
+          if (analyzeChatbot && sessionId) {
+            // Conta i messaggi dell'utente
+            let userMessageCount = 0;
+            const chatContainer = document.getElementById('chat-container');
+            if (chatContainer) {
+              const userMessages = chatContainer.querySelectorAll('.user-message');
+              userMessageCount = userMessages.length;
+              
+              if (userMessageCount >= minUserMessages) {
+                hasSufficientData = true;
+              }
+            }
+            
+            // Se non ci sono abbastanza messaggi, mostra un avviso e chiedi conferma
+            if (!hasSufficientData) {
+              pathologyAnalysisDiv.innerHTML = `
+                <div class="p-8 text-center">
+                  <div class="inline-block p-4 rounded-full bg-yellow-100 mb-4">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                  </div>
+                  <p class="text-yellow-600 font-medium">Conversazione insufficiente per l'analisi</p>
+                  <p class="text-gray-600 mt-2">Sono necessari almeno ${minUserMessages} messaggi dell'utente per un'analisi significativa. Attualmente hai ${userMessageCount} messaggi.</p>
+                  <div class="flex justify-center mt-6 space-x-4">
+                    <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors" id="btnProceedAnyway">
+                      Procedi comunque
+                    </button>
+                    <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors" id="btnCancelAnalysis">
+                      Annulla
+                    </button>
+                  </div>
+                </div>`;
+                
+              // Aggiungi i listener ai bottoni
+              setTimeout(() => {
+                const btnProceedAnyway = document.getElementById('btnProceedAnyway');
+                const btnCancelAnalysis = document.getElementById('btnCancelAnalysis');
+                
+                if (btnProceedAnyway) {
+                  btnProceedAnyway.addEventListener('click', () => {
+                    // Continua con l'analisi anche se insufficiente
+                    proceedWithAnalysis();
+                  });
+                }
+                
+                if (btnCancelAnalysis) {
+                  btnCancelAnalysis.addEventListener('click', () => {
+                    // Ripristina la visualizzazione originale
+                    pathologyAnalysisDiv.innerHTML = `
+                      <div class="flex flex-col items-center justify-center text-gray-500 p-8">
+                        <svg class="w-16 h-16 mb-4 opacity-25" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-center">Premi il pulsante "Analizza indicazioni cliniche" per avviare l'analisi.</p>
+                        <p class="text-center text-sm mt-2">L'analisi utilizzerà il manuale di psicologia clinica per identificare possibili indicazioni.</p>
+                      </div>
+                    `;
+                  });
+                }
+              }, 0);
+              
+              return;
+            }
+          }
+          
+          // Se arriva qui, ci sono dati sufficienti (o l'utente ha scelto di procedere comunque)
+          proceedWithAnalysis();
+        });
+      } else {
+        console.error("Elemento btnAnalyzePathology non trovato");
       }
       
       // Inizializza la chat dopo aver configurato tutti gli event listener
