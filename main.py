@@ -54,7 +54,7 @@ VECTOR_STORE_PATH = DATA_DIR / "vector_store"
 MODEL_NAME = "gpt-4o-mini"
 TEMPERATURE = 0.5  # Leggermente più alto per risposte più empatiche
 MAX_TOKENS = 15000
-SIMILARITY_TOP_K = 5
+SIMILARITY_TOP_K = 8  # Numero di documenti simili da recuperare
 MAX_HISTORY_LENGTH = 6  # Storia più lunga per mantenere contesto terapeutico
 
 # Configurazione ElevenLabs API
