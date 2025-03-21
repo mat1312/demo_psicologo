@@ -687,7 +687,12 @@
           </svg>
         </div>
         <h1 class="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">Psicologo Virtuale</h1>
-        
+        <!-- Aggiunta del pulsante logout -->
+      <div class="absolute top-4 right-4">
+        <button id="btnLogout" class="bg-white text-blue-600 hover:text-blue-800 font-medium py-2 px-4 rounded-full shadow-md hover:shadow-lg transition-all duration-300 flex items-center">
+          <i class="fas fa-sign-out-alt mr-2"></i>
+          Logout
+        </button>
       </div>
     </div>
     <div class="header-wave">
@@ -2006,6 +2011,35 @@ ${isMinimumDataMessage ? `
         container.appendChild(widget);
       }
     });
+
+
+    // Gestione del pulsante logout
+const btnLogout = document.getElementById('btnLogout');
+if (btnLogout) {
+  btnLogout.addEventListener('click', function() {
+    // Chiama l'API per il logout
+    fetch('/api/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Reindirizza alla pagina di login
+        window.location.href = '/';
+      } else {
+        console.error('Errore nel logout:', data.message);
+        alert('Si è verificato un errore durante il logout.');
+      }
+    })
+    .catch(error => {
+      console.error('Errore nella chiamata API:', error);
+      alert('Si è verificato un errore di comunicazione con il server.');
+    });
+  });
+}
   </script>
 </body>
 </html>

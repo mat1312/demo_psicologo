@@ -25,6 +25,16 @@ from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 
+
+
+from fastapi import Cookie, Depends, status
+from fastapi.responses import RedirectResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
+import time
+from typing import Optional
+from fastapi import FastAPI, HTTPException, Request, Response, Cookie, Depends, status
+
 # Configurazione logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -49,6 +59,18 @@ MAX_HISTORY_LENGTH = 6  # Storia più lunga per mantenere contesto terapeutico
 
 # Configurazione ElevenLabs API
 ELEVENLABS_API_BASE = "https://api.elevenlabs.io/v1/convai"
+
+
+# Modelli per l'autenticazione
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    success: bool
+    message: str
+    user_id: Optional[str] = None
+    email: Optional[str] = None
 
 # Modelli Pydantic per le richieste e risposte API
 class Source(BaseModel):
@@ -144,6 +166,29 @@ class PathologyAnalysisResponse(BaseModel):
 # Memoria delle conversazioni per ogni sessione
 conversation_history: Dict[str, List[Dict[str, str]]] = {}
 mood_history: Dict[str, List[str]] = {}  # Traccia l'umore nel tempo
+
+# Gestione sessioni e utenti
+active_sessions: Dict[str, Dict[str, Any]] = {}  # token: {user_id, email, created_at}
+user_sessions: Dict[str, List[str]] = {}  # user_id: [tokens]
+
+
+
+# Funzione per verificare l'autenticazione
+async def get_current_user(session_token: Optional[str] = Cookie(None, alias="session_token")):
+    if not session_token or session_token not in active_sessions:
+        return None
+    
+    # Verifica che la sessione non sia scaduta (24 ore)
+    session_data = active_sessions[session_token]
+    if time.time() - session_data.get("created_at", 0) > 86400:  # 24 ore
+        # Rimuovi la sessione scaduta
+        del active_sessions[session_token]
+        user_id = session_data.get("user_id")
+        if user_id and user_id in user_sessions:
+            user_sessions[user_id] = [t for t in user_sessions[user_id] if t != session_token]
+        return None
+    
+    return session_data
 
 # Inizializza FastAPI
 app = FastAPI(title="Psicologo Virtuale API")
@@ -345,11 +390,96 @@ def format_elevenlabs_transcript(conversation_detail):
     return "\n".join(formatted_messages)
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root():
+async def read_root(current_user: Optional[Dict[str, Any]] = Depends(get_current_user)):
     """Endpoint principale che serve la pagina HTML."""
-    with open(STATIC_DIR / "index.html", "r", encoding="utf-8") as f:
-        content = f.read()
+    if not current_user:
+        # Serve la pagina di login se l'utente non è autenticato
+        with open(STATIC_DIR / "login.html", "r", encoding="utf-8") as f:
+            content = f.read()
+    else:
+        # Serve la pagina principale se l'utente è autenticato
+        with open(STATIC_DIR / "index.html", "r", encoding="utf-8") as f:
+            content = f.read()
     return HTMLResponse(content=content)
+
+
+
+
+
+@app.post("/api/login", response_model=LoginResponse)
+async def login(request: LoginRequest):
+    """Endpoint di login fittizio per la demo."""
+    # Nel mondo reale, verificheresti le credenziali nel database
+    # Per la demo, accettiamo qualsiasi credenziale valida nel formato
+    
+    if not request.email or not request.password or '@' not in request.email:
+        return LoginResponse(success=False, message="Credenziali non valide.")
+    
+    # Genera un user_id basato sull'email
+    user_id = f"user_{hash(request.email) % 10000}"
+    
+    # Genera un token di sessione
+    token = secrets.token_hex(16)
+    
+    # Memorizza la sessione
+    session_data = {
+        "user_id": user_id,
+        "email": request.email,
+        "created_at": time.time()
+    }
+    active_sessions[token] = session_data
+    
+    # Associa il token all'utente
+    if user_id not in user_sessions:
+        user_sessions[user_id] = []
+    user_sessions[user_id].append(token)
+    
+    # Crea una risposta con il cookie
+    response = JSONResponse(
+        content=LoginResponse(
+            success=True,
+            message="Login effettuato con successo!",
+            user_id=user_id,
+            email=request.email
+        ).dict()
+    )
+    
+    # Imposta il cookie di sessione
+    response.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,  # Il cookie non è accessibile via JavaScript
+        max_age=86400,  # 24 ore
+        samesite="lax"
+    )
+    
+    return response
+
+@app.post("/api/logout")
+async def logout(request: Request, current_user: Optional[Dict[str, Any]] = Depends(get_current_user)):
+    """Endpoint per il logout."""
+    response = JSONResponse(
+        content={"success": True, "message": "Logout effettuato con successo!"}
+    )
+    
+    # Se c'è un utente autenticato, rimuovi la sessione
+    if current_user:
+        token = request.cookies.get("session_token")
+        
+        if token and token in active_sessions:
+            user_id = active_sessions[token].get("user_id")
+            del active_sessions[token]
+            
+            if user_id and user_id in user_sessions:
+                user_sessions[user_id] = [t for t in user_sessions[user_id] if t != token]
+    
+    # Cancella il cookie di sessione
+    response.delete_cookie(key="session_token")
+    
+    return response
+
+
+
 
 @app.post("/therapy-session", response_model=QueryResponse)
 async def process_query(request: QueryRequest):
